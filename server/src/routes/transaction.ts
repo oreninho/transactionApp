@@ -3,20 +3,13 @@ import multer from 'multer';
 import {eventsHandler} from "../services/events/eventsHandler";
 import transactions from "../services/transactions";
 import {GLOBAL_CONSTS} from "../consts";
+import * as os from "os";
 const router = express.Router();
 
 const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
-
-
-export interface IUploadRequest{
-    file:File;
-}
-
-
+const upload = multer({ dest: os.tmpdir() });
 
 router.post('/upload', upload.single('file'), (req, res) => {
-// router.post('/upload', (req:IUploadRequest, res) => {
     const currentTime = new Date().toISOString();
     const file = req.file;
     if (!file) {
