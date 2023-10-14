@@ -27,7 +27,7 @@ export  class TransactionDB {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(referenceNumber) DO UPDATE SET 
     updatedTime = strftime('%Y-%m-%d', 'now')`;
-        const now = new Date().toISOString();
+        const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
         try {
 
             await this.dbService!.execute(insertQuery, [
@@ -44,8 +44,8 @@ export  class TransactionDB {
                 now  // updatedTime
             ]);
             this.wasChanged = true;
-            transaction.createdTime = new Date();
-            transaction.updatedTime = new Date();
+            transaction.createdTime = new Date(now);
+            transaction.updatedTime = new Date(now);
             this.cachedTransactions.add(transaction);
         }
         catch(err){

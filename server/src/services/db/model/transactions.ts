@@ -13,7 +13,7 @@ export interface ITransaction {
     details: string;
     amount: number;
     balance: number;
-    referenceNumber: string ;
+    referenceNumber: string|number ;
     currency: string;
     type: string;
     createdTime?: Date;

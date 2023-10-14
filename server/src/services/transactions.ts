@@ -41,14 +41,30 @@ class Transactions {
         return await transactionDb.getAllTransactions();
    }
 
-   private verifyTransaction(transaction:ITransaction):boolean{
+   private verifyTransaction(transaction:any):boolean{
         const keys = Object.keys(transaction);
-        const requiredKeys = ["accountMask","postedDate","description","details","amount","balance","currency","type"];
+
+        const requiredKeys = ["accountMask","postedDate","description","details","amount","balance","currency","type","referenceNumber"];
         for (let key of requiredKeys){
             if (!keys.includes(key) ){
                 logger.error("missing key",key);
                 return false;
             }
+            else if (key === "amount" || key === "balance"){
+                if (isNaN(transaction[key])){
+                    logger.error("invalid amount or balance",transaction[key]);
+                    return false;
+                }
+            }
+            else if (key === "referenceNumber"){
+                logger.log("checking referenceNumber",transaction[key]);
+                logger.log("checking referenceNumber",transaction[key].match(/[^a-zA-Z0-9]/));
+                if (transaction[key].match(/[^a-zA-Z0-9]/)){
+                    logger.error("invalid referenceNumber",transaction[key]);
+                    return false;
+                }
+            }
+            //can add more checks here
         }
         return true;
    }
