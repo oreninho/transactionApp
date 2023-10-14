@@ -4,9 +4,10 @@ import {eventsHandler} from "../services/events/eventsHandler";
 import transactions from "../services/transactions";
 import {GLOBAL_CONSTS} from "../consts";
 import * as os from "os";
+import logger from "../services/logger/logger";
 const router = express.Router();
 
-const storage = multer.memoryStorage();
+//const storage = multer.memoryStorage();
 const upload = multer({ dest: os.tmpdir() });
 
 router.post('/upload', upload.single('file'), (req, res) => {
@@ -19,7 +20,7 @@ router.post('/upload', upload.single('file'), (req, res) => {
     else {
         eventsHandler.subscribe(GLOBAL_CONSTS.EVENT_TRANSACTION_ADDED,async ()=>{
             await transactions.loadTransactionFile(file.path);
-            console.log("listener notified",eventsHandler.listenerCount(GLOBAL_CONSTS.EVENT_TRANSACTION_ADDED));
+            logger.log("listener notified",eventsHandler.listenerCount(GLOBAL_CONSTS.EVENT_TRANSACTION_ADDED));
         });
     }
     eventsHandler.triggerEvent(GLOBAL_CONSTS.EVENT_TRANSACTION_ADDED);
@@ -30,11 +31,11 @@ router.post('/upload', upload.single('file'), (req, res) => {
 router.get("/all",async (req,res)=>{
     try{
         const transactionsData = await transactions.getAllTransactions();
-        console.log("transactionsData",transactionsData);
+        logger.log("transactionsData",transactionsData);
         res.send(transactionsData);
     }
     catch(err){
-        console.log("err",err);
+        logger.error("error when fetching transactions",err);
         res.status(500).send("internal server error");
     }
     finally {
@@ -43,10 +44,5 @@ router.get("/all",async (req,res)=>{
 
 });
 
-
-const uploadHandler = async (filename:string) => {
-    await transactions.loadTransactionFile(filename);
-    console.log("listener notified",eventsHandler.listenerCount(GLOBAL_CONSTS.EVENT_TRANSACTION_ADDED));
-}
 
 export default router ;

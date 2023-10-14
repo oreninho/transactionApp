@@ -1,17 +1,20 @@
 import {IDBService} from "./types";
 import {ITransaction, TransactionMetadata} from "./model/transactions";
+import logger from "../logger/logger";
 
+//Can add more methods to this class, like updateTransaction, deleteTransaction, etc. kept it simple for according to the requirements
 export  class TransactionDB {
 
     private dbService?:IDBService;
-
+    private wasChanged = true;
+    private cachedTransactions = new Set<ITransaction>(); //can use a better caching mechanism like redis, but for now this will do
 
     async initialize(dbService:IDBService): Promise<void> {
         this.dbService = dbService;
         const fields = Object.entries(TransactionMetadata).map(([key, metadata]) => `${key} ${metadata.type} ${metadata.otherData??''}`).join(', ');
-        //await this.dbService.execute('DROP TABLE IF EXISTS transactions');//todo remove this line
+        await this.dbService.execute('DROP TABLE IF EXISTS transactions');//todo remove this line
         const createTableQuery = `CREATE TABLE IF NOT EXISTS transactions (${fields}, PRIMARY KEY (referenceNumber));`
-        console.log("createTableQuery",createTableQuery);
+        logger.log("createTableQuery",createTableQuery);
         await this.dbService.execute(createTableQuery);
 
     }
@@ -26,6 +29,7 @@ export  class TransactionDB {
     updatedTime = strftime('%Y-%m-%d', 'now')`;
         const now = new Date().toISOString();
         try {
+
             await this.dbService!.execute(insertQuery, [
                 transaction.accountMask,
                 transaction.postedDate,
@@ -39,19 +43,30 @@ export  class TransactionDB {
                 now, // createdTime
                 now  // updatedTime
             ]);
+            this.wasChanged = true;
+            transaction.createdTime = new Date();
+            transaction.updatedTime = new Date();
+            this.cachedTransactions.add(transaction);
         }
         catch(err){
-            console.log("insertQuery",insertQuery);
-            console.log("err",err);
+            logger.error("insertQuery Failed",insertQuery);
             throw err;
         }
 
     }
-
-    async getTransactions(): Promise<ITransaction[]> {
+    async getAllTransactions(): Promise<ITransaction[]> {
         try {
-            const selectQuery = 'SELECT * FROM transactions';
-            return await this.dbService!.query<ITransaction[],undefined>(selectQuery);
+            if(this.wasChanged){
+                const selectQuery = 'SELECT * FROM transactions';
+                const transactions = await this.dbService!.query<ITransaction[],undefined>(selectQuery);
+                this.cachedTransactions = new Set(transactions);
+                this.wasChanged = false;
+                return transactions;
+            }
+            else{
+                logger.log("returning cached transactions");
+                return Array.from(this.cachedTransactions);
+            }
         }
         catch(err){
             throw err;

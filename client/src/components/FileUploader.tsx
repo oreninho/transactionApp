@@ -24,8 +24,7 @@ const FileUploader: React.FC = () => {
                 body: formData,
             });
 
-            const data = await response.json();
-            console.log(data); // Handle the response accordingly
+            console.log(response); // Handle the response accordingly
         } catch (error) {
             console.error("An error occurred while uploading the file:", error);
         } finally {
@@ -34,7 +33,7 @@ const FileUploader: React.FC = () => {
     };
 
     return (
-        <div>
+        <div key={"fileUploader"}>
             <h1>File Upload:</h1>
             <input type="file" onChange={onFileChange} />
             <Button onClick={onFileUpload} text={uploading?"uploading":"upload File"}/>

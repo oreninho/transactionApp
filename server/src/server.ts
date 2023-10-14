@@ -3,9 +3,9 @@ import session from "./services/session";
 import transactions from "./services/transactions";
 import {eventsHandler} from "./services/events/eventsHandler";
 import cors from 'cors';
-//import jwtMiddleware from 'express-jwt';
 import {GLOBAL_CONSTS} from "./consts";
 import transactionsRouter from "./routes/transaction";
+import dbService from "./services/db/dbService";
 
 const port  = process.env.port || 3000;
 const app = express();
@@ -29,10 +29,11 @@ app.listen(port,async ()=>{
     });
 
 })
-// app.on('error', (err) => {
-//     eventsHandler.unsubscribeAll(GLOBAL_CONSTS.EVENT_TRANSACTION_ADDED);
-//     eventsHandler.unsubscribeAll(GLOBAL_CONSTS.EVENT_TRANSACTION_ADDED);
-// });
-// app.on("close",()=>{
-//     eventsHandler.unsubscribeAll(GLOBAL_CONSTS.EVENT_TRANSACTION_ADDED);
-// })
+app.on('error', async (err) => {
+    eventsHandler.unsubscribeAll(GLOBAL_CONSTS.EVENT_TRANSACTION_ADDED);
+    await dbService.disconnect();
+});
+app.on("close",async()=>{
+    eventsHandler.unsubscribeAll(GLOBAL_CONSTS.EVENT_TRANSACTION_ADDED);
+    await dbService.disconnect();
+})

@@ -11,7 +11,7 @@ function App() {
     <div className="App">
       <header className="App-header">
         <Transactions id={1} />
-          <FileUploader />
+          <FileUploader key={2} />
       </header>
     </div>
   );

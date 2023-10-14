@@ -1,4 +1,5 @@
 import  {EventEmitter} from 'events'
+import logger from "../logger/logger";
 
 export interface IEventHandler{
     subscribe<T>(eventName:string,callback:(data:T)=>Promise<void>):void
@@ -16,6 +17,7 @@ class EventsHandler  extends EventEmitter implements IEventHandler{
     private eventQueue:IEvent[] = []
 
     subscribe<T>(eventName: string, callback: (data: T) => Promise<void>): void {
+        logger.info("subscribe",eventName,callback)
         this.eventQueue.push({
             eventName:eventName,
             callback:callback
@@ -23,6 +25,7 @@ class EventsHandler  extends EventEmitter implements IEventHandler{
     }
 
     unsubscribe<T>(eventName: string, callback: (data: T) => Promise<void>): void {
+        logger.info("unsubscribe",eventName,callback)
         for (let i in this.eventQueue){
             let event = this.eventQueue[i]
             if (eventName === event.eventName && event.callback === callback ){
@@ -32,6 +35,7 @@ class EventsHandler  extends EventEmitter implements IEventHandler{
     }
 
     triggerEvent<T>(eventName: string,data?:T): void {
+        logger.info("triggerEvent",eventName,data)
         for (let i in this.eventQueue){
             let event = this.eventQueue[i]
             if (eventName === event.eventName){
@@ -44,6 +48,7 @@ class EventsHandler  extends EventEmitter implements IEventHandler{
         }
     }
     unsubscribeAll(eventName: string) {
+        logger.info("unsubscribeAll",eventName)
         for (let i in this.eventQueue){
             let event = this.eventQueue[i]
             if (eventName === event.eventName){

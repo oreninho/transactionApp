@@ -4,5 +4,6 @@ export interface IDBService {
     query<T,R>(queryString: string, params?: R[]): Promise<T>;
     execute<T>(queryString: string, params?: T[]): Promise<void>;
 
+
 }
 

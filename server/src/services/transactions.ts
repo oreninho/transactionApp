@@ -3,6 +3,7 @@ import csv from "csv-parser";
 import * as fs from "fs";
 import transactionDb from "./db/transactionDB";
 import {mapTransactionFields} from "../utils";
+import logger from "./logger/logger";
 const { v4: uuidv4 } = require('uuid'); // make sure to install the 'uuid' package
 
 
@@ -14,7 +15,7 @@ class Transactions {
         fs.createReadStream(file).pipe(csv()).on("data",(row:ITransaction)=>{
             const adjustedRow = mapTransactionFields<ITransaction>(row);
             if (!this.verifyTransaction(adjustedRow)){
-                console.log("invalid transaction",adjustedRow);
+                logger.error("invalid transaction",adjustedRow);
             }
             else{
                 try{
@@ -24,11 +25,11 @@ class Transactions {
                         adjustedRow.referenceNumber = referenceNumber;
                     }
                     transactionDb.addTransaction(adjustedRow).then(()=>{
-                        console.log("added transaction!",adjustedRow)
+                        logger.log("added transaction!",adjustedRow)
                     });
                 }
                 catch (err){
-                    console.log("error adding transaction",err);
+                    logger.error("error adding transaction",err);
                 }
 
             }
@@ -37,15 +38,15 @@ class Transactions {
    }
 
    async getAllTransactions():Promise<ITransaction[]>{
-        return await transactionDb.getTransactions();
+        return await transactionDb.getAllTransactions();
    }
 
    private verifyTransaction(transaction:ITransaction):boolean{
         const keys = Object.keys(transaction);
         const requiredKeys = ["accountMask","postedDate","description","details","amount","balance","currency","type"];
         for (let key of requiredKeys){
-            if (!keys.includes(key)){
-                console.log("missing key",key);
+            if (!keys.includes(key) ){
+                logger.error("missing key",key);
                 return false;
             }
         }
