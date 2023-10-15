@@ -12,7 +12,7 @@ export  class TransactionDB {
     async initialize(dbService:IDBService): Promise<void> {
         this.dbService = dbService;
         const fields = Object.entries(TransactionMetadata).map(([key, metadata]) => `${key} ${metadata.type} ${metadata.otherData??''}`).join(', ');
-        await this.dbService.execute('DROP TABLE IF EXISTS transactions');//todo remove this line
+        //await this.dbService.execute('DROP TABLE IF EXISTS transactions');//todo remove this line
         const createTableQuery = `CREATE TABLE IF NOT EXISTS transactions (${fields}, PRIMARY KEY (referenceNumber));`
         logger.log("createTableQuery",createTableQuery);
         await this.dbService.execute(createTableQuery);
